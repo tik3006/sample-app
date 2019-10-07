@@ -1,11 +1,14 @@
 class User < ApplicationRecord
-  attr_accessor :remember_token
-  before_save { self.email = email.downcase }
+ attr_accessor :remember_token, :activation_token
+  before_save   :downcase_email
+  before_create :create_activation_digest
+  
+  
   validates :name,  presence: true, length: { maximum: 50 }
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, length: { maximum: 255 },
                     format: { with: VALID_EMAIL_REGEX },
-                    uniqueness: { case_sensitive: false }
+                    uniqueness: true
   has_secure_password
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
@@ -27,13 +30,51 @@ class User < ApplicationRecord
     update_attribute(:remenber_digest, User.digest(remember_token))
   end
 
-  # 渡されたトークンがダイジェストと一致したらtrueを返す
-  def authenticated?(remember_token)
-    BCrypt::Password.new(remenber_digest).is_password?(remember_token)
+  # トークンがダイジェストと一致したらtrueを返す
+  def authenticated?(attribute, token)
+    digest = send("#{attribute}_digest")
+    return false if digest.nil?
+    BCrypt::Password.new(digest).is_password?(token)
   end
 
   # ユーザーのログイン情報を破棄する
   def forget
     update_attribute(:remenber_digest, nil)
+  end
+  
+  #アカウントを有効にする
+  def active
+  update_columns(activated: FILL_IN, activated_at: FILL_IN)
+  end 
+  
+  #有効化用のメールを送信する
+  def send_activation_email
+    UserMailer.account_activation(self).deliver_now
+  end 
+  
+  #password再設定の属性を設定する
+  def create_reset_digest
+    self.reset_token = User.new_token
+    update_attribute(:reset_digest, User.digest(reset_token))
+    update_attribute(:reset_sent_at, Time.zone.now)
+  end 
+  
+  #password再設定メールの送信
+  def send_password_reset_email
+    UserMailer.password_reset(self).deliver_now
+  end
+  
+   private
+
+    # メールアドレスをすべて小文字にする
+    def downcase_email
+     email.downcase!
+    end
+
+     # 有効化トークンとダイジェストを作成および代入する
+
+  def create_activation_digest
+    self.activation_token   =   User.new_token                                  # ハッシュ化した記憶トークンを有効化トークン属性に代入
+    self.activation_digest  =   User.digest(activation_token)                   # 有効化トークンをBcryptで暗号化し、有効化ダイジェスト属性に代入
   end
 end

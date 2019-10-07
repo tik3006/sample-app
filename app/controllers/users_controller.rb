@@ -18,9 +18,9 @@ class UsersController < ApplicationController
   def create
     @user = User.new(user_params)
     if @user.save
-      log_in @user
-      flash[:success] = "Welcome to the Sample App!"
-      redirect_to @user
+      @user.send_activation_email
+      flash[:info] = "Please check your email to activate your account."
+      redirect_to root_url
     else
       render 'new'
     end
@@ -49,6 +49,7 @@ class UsersController < ApplicationController
 
   private
     #ここからプライベート
+    
     def user_params
        params.require(:user).permit(:name, :email, :password,
                                     :password_confirmation)
@@ -70,5 +71,18 @@ class UsersController < ApplicationController
     #権利権限があるかどうかの確認
     def admin_user
       redirect_to(root_url) unless current_user.admin?
+    end
+    
+      # メールアドレスを全て小文字にする
+
+    def downcase_email
+      self.email = email.downcase                                                 # emailを小文字化してUserオブジェクトのemail属性に代入
+    end
+
+    # 有効化トークンとダイジェストを作成および代入する
+
+    def create_activation_digest
+      self.activation_token   =   User.new_token                                  # ハッシュ化した記憶トークンを有効化トークン属性に代入
+      self.activation_digest  =   User.digest(activation_token)                   # 有効化トークンをBcryptで暗号化し、有効化ダイジェスト属性に代入
     end
 end
