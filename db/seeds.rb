@@ -1,3 +1,4 @@
+#すべての権限をもったユーザー作成
 User.create!(name:                    "Example User",
              email:                   "example@railstutorial.org",
              password:                "foobar",

@@ -12,10 +12,12 @@ Rails.application.routes.draw do
   get   '/login',  to: 'sessions#new'
   post  '/login',  to: 'sessions#create'
   delete'/logout', to: 'sessions#destroy' 
+  
+  delete'/deleteuser', to: 'users#destroy' 
   #userresource
   resources :users
   #AcountActivations
   resources :account_activations , only: [:edit]
   #Passwordresets
-  resources :password_resets, only: [:new, :create, :edit, :update]
+  resources :password_resets, only: [:new, :create, :edit, :update]  
 end
