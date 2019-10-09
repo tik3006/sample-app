@@ -43,20 +43,22 @@ class User < ApplicationRecord
     update_attribute(:remenber_digest, nil)
   end
   
-  #アカウントを有効にする
-  def active
-  update_columns(activated: FILL_IN, activated_at: FILL_IN)
-  end 
-  
-  #有効化用のメールを送信する
+ # アカウントを有効にする
+  def activate
+    update_attribute(:activated,    true)
+    update_attribute(:activated_at, Time.zone.now)
+  end
+
+  # 有効化用のメールを送信する
   def send_activation_email
     UserMailer.account_activation(self).deliver_now
-  end 
+  end
   
 # パスワード再設定の属性を設定する
   def create_reset_digest
     self.reset_token = User.new_token
-    update_columns(reset_digest:  FILL_IN, reset_sent_at: FILL_IN)
+    update_attribute(:reset_digest,  User.digest(reset_token))
+    update_attribute(:reset_sent_at, Time.zone.now)
   end
 
   # パスワード再設定のメールを送信する
