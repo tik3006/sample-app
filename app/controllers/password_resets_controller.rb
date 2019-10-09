@@ -2,10 +2,13 @@ class PasswordResetsController < ApplicationController
   before_action :get_user,   only: [:edit, :update]
   before_action :valid_user, only: [:edit, :update]
   before_action :check_expiration, only: [:edit, :update]
-  
+
+  # GET /password_resets/new
   def new
   end
-  
+
+  # POST /password_resets == password_resets_path
+  # params[:password_reset][:email] <=== User Input
   def create
     @user = User.find_by(email: params[:password_reset][:email].downcase)
     if @user
@@ -18,48 +21,48 @@ class PasswordResetsController < ApplicationController
       render 'new'
     end
   end
-  
+
+  # GET /password_resets/:id/edit?email=foo@bar.com
   def edit
   end
-  
-   def update
-    if params[:user][:password].empty?
+
+  # PATCH /password_resets/:id?email=foo@bar.com
+  def update
+    #パスワードを再設定する
+    if params[:user][:password].empty?                  # (3) への対応
       @user.errors.add(:password, :blank)
       render 'edit'
-    elsif @user.update_attributes(user_params)
+    elsif @user.update_attributes(user_params)          # (4) への対応
       log_in @user
-      @user.update_attribute(:reset_digest, nil)
       flash[:success] = "Password has been reset."
       redirect_to @user
     else
-      render 'edit'
+      render 'edit'                                     # (2) への対応
     end
   end
-  
-  def user_params
+
+  private
+
+    def user_params
       params.require(:user).permit(:password, :password_confirmation)
     end
 
-  
-  private
-  
-  def get_user
-    @user = User.find_by(email: params[:email])
-  end 
-  
-  #正しいユーザーかどうか判定する
-  def valid_user
-    unless (@user && @user.activated? && @user.authenticated?(:reset,params[:id]))
-    redirect_to root_url
+    def get_user
+      @user = User.find_by(email: params[:email])
     end
-  end 
 
-  #有効なトークンかどうか確認する
-  def check_expiration
-    if @user.password_reset_expired?
-      flash[:danger] = "Password reset has expired."
-      redirect_to_new_password_reser_url
-    end 
-  end 
+    def valid_user
+      if not (@user && @user.activated? &&
+              @user.authenticated?(:reset, params[:id]))
+        redirect_to root_url
+      end
+    end
 
+    # トークンが期限切れかどうか確認する
+    def check_expiration
+      if @user.password_reset_expired?
+        flash[:danger] = "Password reset has expired."
+        redirect_to new_password_reset_url
+      end
+    end
 end

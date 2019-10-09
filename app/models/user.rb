@@ -3,6 +3,7 @@ class User < ApplicationRecord
   before_save   :downcase_email
   #メソッド参照
   before_create :create_activation_digest
+ 
   #micropostsとの関連付け
   has_many :microposts, dependent: :destroy
   

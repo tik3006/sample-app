@@ -5,31 +5,24 @@
       <ul class="nav navbar-nav navbar-right">
         <li><%= link_to "Home",   root_path %></li>
         <li><%= link_to "Help",   help_path %></li>
-        <!-- ユーザーがログインしている場合の処理 -->
-        <% if logged_in? %>  
-          <!-- ユーザー一覧リンク-->
+        <% if logged_in? %>
           <li><%= link_to "Users", users_path %></li>
           <li class="dropdown">
-            <!-- ドロップダウンメニューを適用-->
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               Account <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <!-- ログインユーザー用のプロフィールページへのリンク-->
-              <li><%= link_to "Profile" ,user_path(current_user) %></li>
+              <li><%= link_to "Profile",  current_user %></li>
               <li><%= link_to "Settings", edit_user_path(current_user) %></li>
               <li class="divider"></li>
               <li>
-                <!-- ログアウトリンク-->
                 <%= link_to "Log out", logout_path, method: :delete %>
               </li>
             </ul>
           </li>
-          <!-- ログインしていない場合-->
-          <% else %>
-            <!-- ログインURLを自動生成-->
-            <li><%= link_to "Log in", login_path %></li>
-          <% end %>
+        <% else %>
+          <li><%= link_to "Log in", login_path %></li>
+        <% end %>
       </ul>
     </nav>
   </div>
