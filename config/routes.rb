@@ -14,11 +14,21 @@ Rails.application.routes.draw do
   delete'/logout', to: 'sessions#destroy' 
   
   delete'/deleteuser', to: 'users#destroy' 
+  
+  resources :users do
+    member do
+      get :following, :followers
+    end
+  end
+  
   #userresource
   resources :users
   #AcountActivations
   resources :account_activations , only: [:edit]
   #Passwordresets
   resources :password_resets, only: [:new, :create, :edit, :update]  
+  #microposts
   resources :microposts,  only: [:create, :destroy]
+  #relationships
+  resources :relationships, only: [:create, :destroy]
 end
